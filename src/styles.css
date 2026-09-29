@@ -35,6 +35,19 @@ body {
   color: #8a86a3;
 }
 
+.app__status {
+  margin: 2rem 0 0;
+  color: #6c6880;
+}
+
+.app__status code {
+  background: #f4f2fb;
+  border: 1px solid #e2def2;
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.9em;
+}
+
 .progress {
   margin-bottom: 1.5rem;
 }

@@ -61,22 +61,49 @@ Abre <http://localhost:8080>
 
 ### Etiquetas disponibles
 
-| Etiqueta         | Contenido                                              |
-| ---------------- | ------------------------------------------------------ |
-| `latest`         | JSON por defecto del repo (`src/data/flashcards.json`) |
-| `default`        | Igual que `latest`, para dejarlo explícito              |
-| `react-example`  | Ejemplo con el JSON de `examples/react-cards.json`      |
+| Etiqueta         | Contenido                                                    |
+| ---------------- | ------------------------------------------------------------ |
+| `latest`         | JSON por defecto del repo (`public/flashcards.json`)          |
+| `default`        | Igual que `latest`, para dejarlo explícito                    |
+| `react-example`  | Ejemplo con el JSON de `examples/react-cards.json`            |
 
 Puedes crear tus propias etiquetas a partir de las de ejemplo o construir desde el código.
 
-### Parámetros de build
+### `CARDS_FILE`: tu JSON en build o en runtime
 
-| Parámetro  | Por defecto                   | Descripción                                                          |
-| ---------- | ----------------------------- | -------------------------------------------------------------------- |
-| `CARDS_FILE` | `src/data/flashcards.json`   | Fichero JSON con las tarjetas, **dentro del contexto de build**        |
-| `VCS_REF`  | `unknown`                     | Commit de git, se guarda como label OCI de la imagen                  |
+La app pide el fichero `flashcards.json` por HTTP al arrancar, así que el JSON se puede fijar en dos momentos distintos:
 
-Con `CARDS_FILE` eliges qué JSON se compila dentro del contenedor. Si no lo indicas, se usa el del propio repo.
+| Momento | Cómo | Cuándo usarlo |
+| ------- | ---- | ------------- |
+| **Build** | `--build-arg CARDS_FILE=...` | Quieres que la imagen ya salga con tus tarjetas y no depende de ficheros externos |
+| **Runtime** | `-e CARDS_FILE=...` + `-v fichero:/ruta:ro` | Quieres una sola imagen y cambiar el temario al arrancar, sin reconstruir |
+
+#### En runtime (`docker run`)
+
+```bash
+docker run -d -p 8080:80 \
+  -e CARDS_FILE=/cards/mis-tarjetas.json \
+  -v "$PWD/mis-tarjetas.json:/cards/mis-tarjetas.json:ro" \
+  jjal20021998/flash-cards
+```
+
+`CARDS_FILE` es una ruta **dentro del contenedor**, por eso normalmente se combina con `-v` para montar tu fichero. El entrypoint lo copia sobre el `flashcards.json` que sirve nginx antes de arrancarlo.
+
+| Valor de `CARDS_FILE`      | Comportamiento                                             |
+| -------------------------- | ---------------------------------------------------------- |
+| Sin definir (por defecto)  | Usa el JSON compilado en la imagen                           |
+| Ruta a un fichero válido   | Usa ese JSON                                                 |
+| Ruta a un fichero inexistente | Avisa por log y usa el JSON por defecto                   |
+| Ruta a un JSON que no tiene `"flashcards"` | Avisa por log y usa el JSON por defecto |
+
+Los avisos se ven en los logs del contenedor:
+
+```bash
+docker logs flashcards
+# flash-cards: usando CARDS_FILE=/cards/mis-tarjetas.json
+```
+
+#### En build
 
 ```bash
 # Con el JSON por defecto
@@ -99,18 +126,31 @@ El fichero debe respetar este formato:
 }
 ```
 
-Durante el build el JSON se valida: si el fichero no existe, no tiene un array `flashcards` con elementos, o alguna tarjeta va sin `question` o `answer`, la build falla con un error claro en lugar de generar una imagen rota.
+En build el JSON se valida antes de compilar: si el fichero no existe, no tiene un array `flashcards` con elementos, o alguna tarjeta va sin `question` o `answer`, la build falla con un error claro en lugar de generar una imagen rota. En runtime no se puede validar con esas garantías (la imagen no lleva Node), así que el entrypoint avisa en el log y cae al JSON por defecto.
 
-> El JSON se compila dentro del bundle de JavaScript, así que cambiar las tarjetas requiere volver a construir la imagen. La barra de progreso se recalcula sola con el número de tarjetas de tu JSON.
+### Parámetros de build
+
+| Parámetro   | Por defecto                 | Descripción                                                       |
+| ----------- | --------------------------- | ----------------------------------------------------------------- |
+| `CARDS_FILE` | `public/flashcards.json`   | JSON con las tarjetas compilado en la imagen. Dentro del contexto de build |
+| `VCS_REF`  | `unknown`                   | Commit de git, se guarda como label OCI de la imagen               |
+
+### Variables de entorno
+
+| Variable     | Por defecto | Descripción                                              |
+| ------------ | ----------- | -------------------------------------------------------- |
+| `CARDS_FILE` | vacío       | Ruta **dentro del contenedor** al JSON a usar en runtime  |
 
 ### Opciones de `docker run`
 
-| Opción                     | Ejemplo                  | Descripción                                |
-| -------------------------- | ------------------------ | ------------------------------------------ |
-| `-p <host>:<cont>`         | `-p 8080:80`             | Publica el puerto 80 de nginx              |
-| `--name <nombre>`          | `--name flashcards`       | Nombre del contenedor                      |
-| `-d`                       | `-d`                     | Ejecuta en segundo plano                   |
-| `--restart unless-stopped` |                          | Reinicia el contenedor si se cae           |
+| Opción                     | Ejemplo                                    | Descripción                          |
+| -------------------------- | ------------------------------------------ | ------------------------------------ |
+| `-p <host>:<cont>`         | `-p 8080:80`                               | Publica el puerto 80 de nginx        |
+| `-e <VAR>=<valor>`         | `-e CARDS_FILE=/cards/mis.json`            | Variable de entorno del contenedor   |
+| `-v <host>:<cont>[:ro]`    | `-v "$PWD/mis.json:/cards/mis.json:ro"`    | Monta tu JSON en el contenedor        |
+| `--name <nombre>`          | `--name flashcards`                         | Nombre del contenedor                |
+| `-d`                       | `-d`                                       | Ejecuta en segundo plano             |
+| `--restart unless-stopped` |                                            | Reinicia el contenedor si se cae     |
 
 Ejemplo completo:
 
@@ -119,6 +159,8 @@ docker run -d \
   --name flashcards \
   -p 8080:80 \
   --restart unless-stopped \
+  -e CARDS_FILE=/cards/mis-tarjetas.json \
+  -v "$PWD/mis-tarjetas.json:/cards/mis-tarjetas.json:ro" \
   jjal20021998/flash-cards
 ```
 
@@ -146,7 +188,9 @@ docker push <tu-usuario>/flash-cards:mi-json
 ### Detalles de la imagen
 
 - Build en dos etapas: `node:20-alpine` compila con Vite y `nginx:1.27-alpine` sirve el resultado estático
+- `docker-entrypoint.sh` resuelve el JSON de runtime antes de arrancar nginx
 - Compresión gzip activada y caché de assets con hash (`immutable`)
+- El JSON se sirve con `no-store` para que un cambio de temario se vea al instante
 - `HEALTHCHECK` incluido, el contenedor pasa a `healthy` cuando nginx responde
 - Expone el puerto `80`
 
@@ -154,7 +198,8 @@ docker push <tu-usuario>/flash-cards:mi-json
 
 ```
 .
-├── Dockerfile              # Build multi-etapa con el parámetro CARDS_FILE
+├── Dockerfile              # Build multi-etapa, CARDS_FILE en build y runtime
+├── docker-entrypoint.sh    # Resuelve el JSON de runtime y arranca nginx
 ├── nginx.conf              # Configuración de nginx para la SPA
 ├── .dockerignore
 ├── index.html
@@ -162,12 +207,12 @@ docker push <tu-usuario>/flash-cards:mi-json
 ├── vite.config.js
 ├── examples/
 │   └── react-cards.json    # JSON de ejemplo para probar CARDS_FILE
+├── public/
+│   └── flashcards.json     # JSON por defecto (se sirve en /flashcards.json)
 └── src/
     ├── main.jsx                 # Punto de entrada
-    ├── App.jsx                  # Estado con useState y layout
+    ├── App.jsx                  # Estado con useState, fetch del JSON y layout
     ├── styles.css               # Estilos de la aplicación
-    ├── data/
-    │   └── flashcards.json      # Preguntas y respuestas (JSON por defecto)
     └── components/
         ├── ProgressBar.jsx      # Barra de progreso
         ├── FlashCard.jsx        # Tarjeta que se voltea
@@ -177,14 +222,16 @@ docker push <tu-usuario>/flash-cards:mi-json
 ## Cómo está hecho
 
 - **React + Vite** como framework y bundler
-- **Estado con `useState`**: las tarjetas se cargan del JSON, y en `App.jsx` se controlan el índice de la tarjeta actual y si está volteada
+- **Estado con `useState`**: en `App.jsx` se guardan las tarjetas, el índice de la tarjeta actual y si está volteada
+- **El JSON se pide por HTTP** a `/flashcards.json` con `useEffect` al montar el componente, en vez de quedar embebido en el bundle. Eso es lo que permite cambiar el temario con `-e CARDS_FILE=...` sin reconstruir la imagen
+- **Estados de carga y error**: mientras se descarga el JSON y si falla, la app muestra un mensaje en vez de romperse
 - **Componentes reutilizables**: cada pieza de la interfaz (barra, tarjeta, botones) es un componente independiente que recibe sus datos por props
 - **Navegación cíclica**: `Next` y `Previous` dan la vuelta a la lista al llegar al final
 - **Voltear tarjeta**: con click, `Enter` o barra espaciadora (accesible con teclado)
 
 ## Añadir más tarjetas
 
-Edita `src/data/flashcards.json` y añade un objeto más al array `flashcards`:
+Edita `public/flashcards.json` y añade un objeto más al array `flashcards`:
 
 ```json
 {
@@ -194,7 +241,18 @@ Edita `src/data/flashcards.json` y añade un objeto más al array `flashcards`:
 }
 ```
 
-La barra de progreso se actualiza sola con el nuevo total.
+La barra de progreso se actualiza sola con el nuevo total. Si estás usando la imagen de Docker, recuerda reconstruirla o montar el fichero nuevo:
+
+```bash
+# Localmente
+npm run dev
+
+# Con la imagen de Docker
+docker run -d -p 8080:80 \
+  -e CARDS_FILE=/cards/mis.json \
+  -v "$PWD/public/flashcards.json:/cards/mis.json:ro" \
+  jjal20021998/flash-cards
+```
 
 ## Accesibilidad
 

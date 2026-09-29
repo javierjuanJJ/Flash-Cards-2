@@ -1,0 +1,171 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #1f1c2c, #928dab);
+  color: #1f1c2c;
+}
+
+.app {
+  width: min(640px, 92vw);
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.app__title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+}
+
+.app__hint {
+  margin: 1.25rem 0 0;
+  font-size: 0.8rem;
+  color: #8a86a3;
+}
+
+.progress {
+  margin-bottom: 1.5rem;
+}
+
+.progress__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6c6880;
+  margin-bottom: 0.4rem;
+}
+
+.progress__track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e7e4f0;
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4c33ab, #7a5cd6);
+  transition: width 0.3s ease;
+}
+
+.flashcard {
+  perspective: 1200px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  width: 100%;
+}
+
+.flashcard__inner {
+  position: relative;
+  width: 100%;
+  min-height: 260px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.flashcard--flipped .flashcard__inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.75rem;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flashcard__face--front {
+  background: #f4f2fb;
+  border: 1px solid #e2def2;
+}
+
+.flashcard__face--back {
+  background: #1f1c2c;
+  color: #fff;
+  transform: rotateY(180deg);
+}
+
+.flashcard__label {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.flashcard__text {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.75rem;
+}
+
+.btn {
+  border: 1px solid #d5d1e6;
+  background: #fff;
+  color: #1f1c2c;
+  border-radius: 10px;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, color 0.2s ease;
+}
+
+.btn:hover {
+  background: #f1eefb;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible {
+  outline: 2px solid #4c33ab;
+  outline-offset: 2px;
+}
+
+.btn--primary {
+  background: #4c33ab;
+  border-color: #4c33ab;
+  color: #fff;
+}
+
+.btn--primary:hover {
+  background: #3d278c;
+}
+
+.btn--ghost {
+  background: transparent;
+  border-style: dashed;
+  color: #6c6880;
+}

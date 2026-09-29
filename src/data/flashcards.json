@@ -1,0 +1,65 @@
+{
+  "title": "JavaScript Fundamentals",
+  "flashcards": [
+    {
+      "id": 1,
+      "question": "¿Qué es JavaScript?",
+      "answer": "Es un lenguaje de programación de alto nivel, dinámico y weakly typed que se ejecuta en navegadores y servidores (Node.js)."
+    },
+    {
+      "id": 2,
+      "question": "¿Cuál es la diferencia entre let, const y var?",
+      "answer": "var tiene ámbito de función y puede redeclararse. let tiene ámbito de bloque y no puede redeclararse. const también tiene ámbito de bloque, pero su valor no se puede reasignar tras la declaración."
+    },
+    {
+      "id": 3,
+      "question": "¿Qué es el hoisting?",
+      "answer": "Es el comportamiento por el que las declaraciones de variables y funciones se/processan al inicio de su ámbito, antes de ejecutar el código. Por eso var se usa antes de declararse (undefined) y las funciones se pueden llamar antes de definirse."
+    },
+    {
+      "id": 4,
+      "question": "¿Qué es una función de flecha (arrow function)?",
+      "answer": "Es una forma compacta de definir funciones que no tiene su propio this, arguments ni new. Hereda this del ámbito donde se crea, por lo que es ideal para callbacks."
+    },
+    {
+      "id": 5,
+      "question": "¿Cuál es la diferencia entre == y ===?",
+      "answer": "== hace coerción de tipos antes de comparar (5 == '5' es true), mientras que === compara valor y tipo sin coerción (5 === '5' es false). La misma diferencia existe entre != y !==."
+    },
+    {
+      "id": 6,
+      "question": "¿Qué es el Event Loop?",
+      "answer": "Es el mecanismo que coordina la ejecución: el call stack ejecuta código síncrono, y las tareas asíncronas (como setTimeout o promesas) esperan en colas hasta que el stack queda vacío."
+    },
+    {
+      "id": 7,
+      "question": "¿Qué devuelve una función asíncrona?",
+      "answer": "Devuelve siempre una Promise. Si la función lanza un error, la promesa se rechaza; si devuelve un valor, la promesa se resuelve con ese valor."
+    },
+    {
+      "id": 8,
+      "question": "¿Qué es el destructuring?",
+      "answer": "Es una sintaxis que extrae valores de objetos o arrays en variables separadas. Ejemplo: const { name, age } = user; o const [first, second] = [1, 2];"
+    },
+    {
+      "id": 9,
+      "question": "¿Qué son los módulos ES6?",
+      "answer": "Es el sistema de módulos del estándar de JavaScript. Usa import y export para separar el código en archivos, con un ámbito propio por módulo y dependencias estáticas."
+    },
+    {
+      "id": 10,
+      "question": "¿Qué es el DOM?",
+      "answer": "Es la representación del documento HTML como un árbol de objetos, que permite a JavaScript leer y modificar el contenido, atributos y estilos de una página web."
+    },
+    {
+      "id": 11,
+      "question": "¿Cómo funciona el prototypal inheritance?",
+      "answer": "Cada objeto tiene un prototype que actúa como plantilla. Cuando se busca una propiedad y no existe en el objeto, se busca en su prototype, y así sucesivamente hasta null. class usa esta misma idea bajo el azúcar sintáctico."
+    },
+    {
+      "id": 12,
+      "question": "¿Qué son las Promises y sus estados?",
+      "answer": "Un objeto que representa el resultado pendiente de una operación asíncrona. Tiene tres estados: pending (inicial), fulfilled (resuelto con un valor) y rejected (rechazado con un error)."
+    }
+  ]
+}

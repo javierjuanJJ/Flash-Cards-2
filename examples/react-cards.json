@@ -1,0 +1,15 @@
+{
+  "title": "React Basics",
+  "flashcards": [
+    {
+      "id": 1,
+      "question": "¿Qué es un componente?",
+      "answer": "Una función o clase de JavaScript que devuelve elementos de JSX y que React usa para construir la interfaz."
+    },
+    {
+      "id": 2,
+      "question": "¿Qué hace useState?",
+      "answer": "Permite añadir estado a un componente funcional: devuelve el valor actual y una función para actualizarlo que provoca un re-render."
+    }
+  ]
+}
